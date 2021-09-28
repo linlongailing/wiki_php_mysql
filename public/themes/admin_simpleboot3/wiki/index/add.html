@@ -1,0 +1,45 @@
+<include file="public@header" />
+</head>
+<body>
+    <ul class="nav nav-tabs">
+        <li><a href="{:url('index/class')}">列表</a></li>
+        <li class="active"><a href="{:url('index/add')}">添加</a></li>
+    </ul>
+<div class="wrap">
+    <form method="post" class="form-horizontal js-ajax-form margin-top-20" action="{:url('index/add')}">
+        <input type="hidden" name="id" value="<notempty name='category'>{$category.id}</notempty>">
+        <div class="form-group">
+            <label for="input-type" class="col-sm-2 control-label">父级分类</label>
+            <div class="col-md-6 col-sm-10">
+                <select class="form-control" name="parent" id="input-parent">
+                    <option value="0">请选择</option>
+                    <foreach name="parent" item="vo" key="k">
+
+                        <emtpy name="$vo['child']">
+                            <option value="{$vo['id']}"
+                            <notempty name='category'>
+                                <if condition="$vo['id'] eq $category['parent_id']">selected</if>
+                            </notempty>
+                            >{$vo['title']}</option>
+                        </emtpy>
+                    </foreach>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="input-title" class="col-sm-2 control-label">标题<span class="form-required">*</span></label>
+            <div class="col-md-6 col-sm-10">
+                <input type="text" class="form-control" id="input-title" name="title" value="<notempty name='category'>{$category.title}</notempty>">
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <button type="submit" class="btn btn-primary js-ajax-submit"> <notempty name='category'>修改<else />添加</notempty></button>
+                <a class="btn btn-default" href="javascript:history.back(-1);">返回</a>
+            </div>
+        </div>
+    </form>
+</div>
+<script src="__STATIC__/js/admin.js"></script>
+</body>
+</html>

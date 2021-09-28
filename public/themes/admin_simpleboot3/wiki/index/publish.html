@@ -1,0 +1,178 @@
+<include file="public@header"/>
+<style>
+    #tag_list {
+        margin-top: 15px;
+    }
+
+    #tag_list .some {
+        background-color: lightgray;
+        width: fit-content;
+        height: fit-content;
+        float: left;
+        margin-right: 10px;
+        padding: 6px;
+        cursor: pointer;
+    }
+
+    #tag_list .cancel {
+        display: none;
+        text-align: center;
+    }
+
+    #tag_list .shows {
+        display: block;
+    }
+</style>
+</head>
+<body>
+<ul class="nav nav-tabs">
+    <li><a href="{:url('index/index')}">列表</a></li>
+    <li class="active"><a href="{:url('index/publish')}">添加</a></li>
+</ul>
+<div class="wrap">
+    <form method="post" class="form-horizontal js-ajax-form margin-top-20" action="{:url('index/publish')}">
+        <input type="hidden" name="id" value="<notempty name='wiki'>{$wiki.id}</notempty>">
+        <div class="form-group">
+            <label for="input-class" class="col-sm-2 control-label">分类<span class="form-required">*</span></label>
+            <div class="col-md-6 col-sm-10">
+                <select class="form-control" name="class" id="input-class">
+                    <option value="0">请选择</option>
+                    <foreach name="class" item="vo" key="k">
+                        <option value="{$vo['id']}"
+                        <notempty name='wiki'>
+                            <if condition="$vo['id'] eq $wiki['class_id']">selected</if>
+                        </notempty>
+                        >{$vo['title']}</option>
+                        <notempty name="$vo['child']">
+                            <foreach name="$vo['child']" item='child'>
+                                <option value="{$child['id']}"
+                                <notempty name='wiki'>
+                                    <if condition="$child['id'] eq $wiki['class_id']">selected</if>
+                                </notempty>
+                                >&nbsp;&nbsp;&nbsp;&nbsp;{$child['title']}</option>
+                                <notempty name="$child['grandson']">
+                                    <foreach name="$child['grandson']" item='grandson'>
+                                        <option value="{$grandson['id']}"
+                                        <notempty name='wiki'>
+                                            <if condition="$grandson['id'] eq $wiki['class_id']">selected</if>
+                                        </notempty>
+                                        >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{$grandson['title']}</option>
+                                    </foreach>
+                                </notempty>
+                            </foreach>
+                        </notempty>
+                        <emtpy name="$vo['child']">
+
+                        </emtpy>
+                    </foreach>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="input-title" class="col-sm-2 control-label">标题<span class="form-required">*</span></label>
+            <div class="col-md-6 col-sm-10">
+                <input type="text" class="form-control" id="input-title" name="title"
+                       value="<notempty name='wiki'>{$wiki.title}</notempty>">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">内容<span class="form-required">*</span></label>
+            <div class="col-md-6 col-sm-10">
+                <script id="container" name="content" type="text/plain"></script>
+                <input type="hidden" id="someval" value="<notempty name='wiki'>{$wiki.content}</notempty>">
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <button type="submit" class="btn btn-primary js-ajax-submit">
+                    <notempty name='wiki'>修改
+                        <else/>
+                        添加
+                    </notempty>
+                </button>
+                <a class="btn btn-default" href="javascript:history.back(-1);">返回</a>
+            </div>
+        </div>
+    </form>
+</div>
+<script src="__STATIC__/js/admin.js"></script>
+<script src="__STATIC__/js/ueditor/ueditor.config.js?v=1"></script>
+<script src="__STATIC__/js/ueditor/ueditor.all.min.js"></script>
+<script type="text/javascript">
+    var ue = UE.getEditor('container', {
+        toolbars: [
+            ['fullscreen', 'undo', 'redo', '|', 'bold', 'italic', 'underline', 'fontborder', 'strikethrough', '|', 'anchor', 'fontfamily', 'fontsize', 'forecolor', 'backcolor', 'insertcode', '|', 'simpleupload', 'attachment'],
+        ],
+        autoHeightEnabled: true,
+        autoFloatEnabled: true,
+        initialFrameHeight: 400,
+    });
+    ue.ready(function () {
+        ue.setContent($("#someval").val());
+    });
+
+    Array.prototype.remove = function (val) {
+        var index = this.indexOf(val);
+        if (index > -1) {
+            this.splice(index, 1);
+        }
+    };
+
+    $("#input-users").change(function () {
+        var value = $(this).val();
+        var opt = [].find.call(this.list.options, function (option) {
+            return option.value === value;
+        });
+
+        if (opt) {
+            var bb = opt.getAttribute('data-id');
+            $("#user").val(bb);
+        }
+    });
+    var val_arr = []
+    $("#input-tag").change(function () {
+        var val = $(this).val();
+        if (val == '') {
+            return false;
+        }
+        if (val_arr.indexOf(val) != -1) {
+            console.log(val)
+            return false;
+        }
+        if (val_arr.length >= 3) {
+            return false;
+        }
+        val_arr.push(val)
+        var old_val = $("#tag_list").val()
+        var opt = "<div class='some'><div class='shows'>" + val + "</div><div class='cancel'>取消</div></div>";
+        $("#tag_list").append(opt);
+
+        var old_input_val = $("#tag").val()
+        old_input_val += val + ",";
+        $("#tag").val(old_input_val);
+    });
+
+    $("#tag_list").delegate(".some", "mouseenter", function () {
+        var w = $(this).width();
+        $(this).find(".cancel").show();
+        $(this).find(".shows").hide();
+        $(this).find(".cancel").css("width", w);
+    });
+    $("#tag_list").delegate(".some", "mouseleave", function () {
+        var w = $(this).width();
+        $(this).find(".shows").show();
+        $(this).find(".cancel").hide();
+        $(this).find(".shows").css("width", w);
+    });
+    $("#tag_list").delegate(".cancel", "click", function () {
+        var t = $(this).parent().find(".shows").text();
+        $(this).parent().remove();
+        var old_input_val = $("#tag").val()
+        old_input_val = old_input_val.replace(t + ',', '');
+        $("#tag").val(old_input_val);
+        val_arr.remove(t)
+        console.log(val_arr)
+    });
+</script>
+</body>
+</html>

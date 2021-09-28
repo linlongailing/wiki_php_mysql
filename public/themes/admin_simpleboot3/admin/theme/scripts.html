@@ -1,0 +1,149 @@
+<script src="__STATIC__/js/admin.js"></script>
+<script>
+
+    Wind.use('colorpicker', function () {
+        $('.js-color').each(function () {
+            var $this = $(this);
+            $this.ColorPicker({
+                livePreview: true,
+                onChange: function (hsb, hex, rgb) {
+                    $this.val('#' + hex);
+                },
+                onBeforeShow: function () {
+                    $(this).ColorPickerSetColor(this.value);
+                }
+            });
+        });
+
+    });
+
+    function doSelectData(obj) {
+        var $obj              = $(obj);
+        var $realInput        = $obj.next();
+        var selectedObjectsId = $realInput.val();
+        var dataSource        = $obj.data('source');
+        var title             = $obj.data('title');
+        parent.openIframeLayer("{:url('theme/dataSource')}?ids=" + selectedObjectsId + '&data_source=' + dataSource, title, {
+            area: ['95%', '90%'],
+            btn: ['确定', '取消'],
+            yes: function (index, layero) {
+                var iframeWin       = parent.window[layero.find('iframe')[0]['name']];
+                var selectedObjects = iframeWin.confirm();
+                if (selectedObjects.selectedObjectsId.length == 0) {
+                    layer.msg('您没有选择任何数据!');
+                    return;
+                }
+                $realInput.val(selectedObjects.selectedObjectsId.join(','));
+                $obj.val(selectedObjects.selectedObjectsName.join(','));
+                parent.layer.close(index); //如果设定了yes回调，需进行手工关闭
+            }
+        });
+    }
+
+    function doEditArrayData(obj) {
+        var $obj   = $(obj);
+        var mVar   = $obj.data('var');
+        var title  = $obj.data('title');
+        var widget = $obj.data('widget');
+        widget     = widget ? '&widget=' + widget : '';
+        var fileId = $obj.data('file_id');
+        if (!fileId) {
+            fileId = '{$file_id}';
+        }
+
+        parent.openIframeLayer(
+            "{:url('theme/fileArrayData')}?tab={$tab}&file_id="+fileId+"&" + 'var=' + mVar + widget,
+            title,
+            {
+                area: ['95%', '90%'],
+                btn: ['确定', '取消'],
+                yes: function (index, layero) {
+                    var iframeWin = parent.window[layero.find('iframe')[0]['name']];
+                    var result    = iframeWin.confirm();
+
+                    if (result) {
+                        parent.layer.close(index); //如果设定了yes回调，需进行手工关闭
+                    }
+
+                }
+            }
+        );
+    }
+
+    function doSelectLocation(obj) {
+        var $obj       = $(obj);
+        var title      = $obj.data('title');
+        var $realInput = $obj.next();
+        var location   = $realInput.val();
+
+        parent.openIframeLayer(
+            "{:url('dialog/map')}?location=" + location,
+            title,
+            {
+                area: ['95%', '90%'],
+                btn: ['确定', '取消'],
+                yes: function (index, layero) {
+                    var iframeWin = parent.window[layero.find('iframe')[0]['name']];
+                    var location  = iframeWin.confirm();
+                    $realInput.val(location.lng + ',' + location.lat);
+                    $obj.val(location.address);
+                    parent.layer.close(index); //如果设定了yes回调，需进行手工关闭
+                }
+            }
+        );
+    }
+
+    /**
+     * 单个图片上传
+     * @param dialog_title 上传对话框标题
+     * @param input_selector 图片容器
+     * @param extra_params 额外参数，object
+     * @param app  应用名,CMF的应用名
+     */
+    function doUploadOneImage(dialog_title, input_selector, extra_params, app) {
+        parent.openUploadDialog(dialog_title, function (dialog, files) {
+            $(input_selector).val(files[0].filepath);
+            $(input_selector + '-preview').attr('src', files[0].preview_url);
+
+            $(input_selector + '-name').val(files[0].name);
+            $(input_selector + '-name-text').text(files[0].name);
+
+        }, extra_params, 0, 'image', app);
+    }
+
+    /**
+     * 单个文件上传
+     * @param dialog_title 上传对话框标题
+     * @param input_selector 图片容器
+     * @param filetype 文件类型，image,video,audio,file
+     * @param extra_params 额外参数，object
+     * @param app  应用名,CMF的应用名
+     */
+    function doUploadOne(dialog_title, input_selector, filetype, extra_params, app) {
+        filetype = filetype ? filetype : 'file';
+        parent.openUploadDialog(dialog_title, function (dialog, files) {
+            $(input_selector).val(files[0].filepath);
+            $(input_selector + '-preview').attr('href', files[0].preview_url);
+
+            $(input_selector + '-name').val(files[0].name);
+            $(input_selector + '-name-text').text(files[0].name);
+        }, extra_params, 0, filetype, app);
+    }
+
+    function confirm() {
+        $('#submit-btn').click();
+    }
+
+    function removeImage(wigetVarName) {
+        //需要定位input和image
+        //清空Input
+        $('#js-' + wigetVarName + '-input').val('');
+        //修改Image为原图。
+        var defaultImage = $('#js-' + wigetVarName + '-button-remove').attr('defaultImage');
+        $('#js-' + wigetVarName + '-input-preview').attr('src', defaultImage);
+        //移除自身
+        $('#js-' + wigetVarName + '-button-remove').remove();
+
+    }
+
+</script>

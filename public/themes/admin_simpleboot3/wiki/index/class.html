@@ -1,0 +1,127 @@
+<include file="public@header"/>
+<style>
+    .fa {
+        cursor: pointer;
+        text-align: center;
+        display: block;
+    }
+
+    .childlist {
+        margin-left: 17px;
+    }
+
+    .grandlist {
+        margin-left: 36px;
+    }
+</style>
+</head>
+<body>
+<ul class="nav nav-tabs">
+    <li class="active"><a href="{:url('index/class')}">列表</a></li>
+    <li><a href="{:url('index/add')}">添加</a></li>
+</ul>
+<div class="wrap js-check-wrap">
+    <table class="table table-hover table-bordered">
+        <thead>
+        <tr>
+            <th width="5%">选 项</th>
+            <th>ID</th>
+            <th>标题</th>
+            <th>时间</th>
+            <th>操 作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <foreach name="class_list" item="vo">
+            <tr class="parent root" data-id='{$vo.id}'>
+                <td>
+                    <notempty name="$vo['child']"><i class="fa fa-plus-square parent_tree  p-{$vo['id']}"
+                                                     aria-hidden="true"
+                                                     data-tree=0></i></notempty>
+                </td>
+                <td>{$vo.id}</td>
+                <td>{$vo.title}</td>
+                <td>{$vo.time|date="Y-m-d H:i:s"}</td>
+                <td>
+                    <a class="btn btn-xs btn-primary"
+                       href="{:url('index/add',array('id'=>$vo['id']))}">修改</a> |
+                    <a class="btn btn-xs btn-danger js-ajax-dialog-btn"
+                       href="{:url('index/categoryDel',array('id'=>$vo['id']))}"
+                       data-msg="确定删除吗？">删除</a>
+                </td>
+            </tr>
+            <notempty name="$vo['child']">
+                <foreach name="$vo['child']" item='child'>
+                    <tr class="child-{$vo['id']} parent" style="display: none;" data-id='{$child.id}'>
+                        <td>
+                            <if condition="$child['grandson'] neq null"><i
+                                    class="fa fa-plus-square parent_tree childlist p-{$vo['id']}"
+                                    aria-hidden="true"
+                                    data-tree=0></i>
+                                <else/>
+                                <i class="fa fa-angle-right childlist" aria-hidden="true"></i>
+                            </if>
+                        </td>
+                        <td>{$child.id}</td>
+                        <td>{$child.title}</td>
+                        <td>{$child.time|date="Y-m-d H:i:s"}</td>
+                        <td>
+                            <a class="btn btn-xs btn-primary"
+                               href="{:url('index/add',array('id'=>$child['id']))}">修改</a> |
+                            <a class="btn btn-xs btn-danger js-ajax-dialog-btn"
+                               href="{:url('index/categoryDel',array('id'=>$child['id']))}"
+                               data-msg="确定删除吗？">删除</a>
+                        </td>
+                    </tr>
+
+                    <notempty name="$child['grandson']">
+                        <foreach name="$child['grandson']" item='grandson'>
+                            <tr class="child-{$child['id']} child grandson-{$vo['id']}" style="display: none;">
+                                <td>
+                                    <i class="fa fa-angle-right grandlist" aria-hidden="true"></i>
+                                </td>
+                                <td>{$grandson.id}</td>
+                                <td>{$grandson.title}</td>
+                                <td>{$grandson.time|date="Y-m-d H:i:s"}</td>
+                                <td>
+                                    <a class="btn btn-xs btn-primary"
+                                       href="{:url('index/add',array('id'=>$grandson['id']))}">修改</a> |
+                                    <a class="btn btn-xs btn-danger js-ajax-dialog-btn"
+                                       href="{:url('index/categoryDel',array('id'=>$grandson['id']))}"
+                                       data-msg="确定删除吗？">删除</a>
+                                </td>
+                            </tr>
+                        </foreach>
+                    </notempty>
+                </foreach>
+            </notempty>
+        </foreach>
+        </tbody>
+    </table>
+</div>
+<script src="__STATIC__/js/admin.js"></script>
+<script>
+    $(".parent_tree").click(function () {
+        var is_show = $(this).data("tree");
+        var parent_id = $(this).parent("td").parent(".parent").data("id");
+        var is_root = $(this).parent("td").parent(".parent").hasClass("root")
+        var class_id = ".child-" + parent_id;
+        if (is_show == 0) {
+            $(this).removeClass("fa-plus-square").addClass("fa-window-minimize");
+            $(this).data("tree", 1);
+            $(class_id).css("display", '');
+        } else {
+            $(this).removeClass("fa-window-minimize").addClass("fa-plus-square");
+            $(this).data("tree", 0);
+            $(class_id).css("display", 'none');
+            if (is_root) {
+                $(".p-" + parent_id).removeClass("fa-window-minimize").addClass("fa-plus-square");
+                $(".p-" + parent_id).data("tree", 0);
+                $('.child-' + parent_id).css("display", 'none');
+                $('.grandson-' + parent_id).css("display", 'none');
+            }
+        }
+    });
+</script>
+</body>
+</html>
